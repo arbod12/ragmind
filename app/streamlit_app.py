@@ -60,23 +60,53 @@ st.caption("Ask a question. The system retrieves with hybrid search, judges whet
 
 # ---- Sidebar: live controls that map directly to Config ----
 with st.sidebar:
-    st.subheader("Engine controls")
-    corpus = st.selectbox("Knowledge corpus", ["security", "secondary"],
-                          help="Swap the body of knowledge with zero code change.")
-    alpha = st.slider("Hybrid alpha (0=keyword, 1=semantic)", 0.0, 1.0, 0.5, 0.1,
-                      help="Blends BM25 keyword search with dense semantic search.")
-    max_attempts = st.slider("Max retrieval attempts", 1, 5, 3,
-                             help="How many times the agent may rewrite and retry.")
+    st.subheader("How to use this")
+    st.markdown(
+        "1. Pick a knowledge source below.\n"
+        "2. Type a question in the box.\n"
+        "3. Click **Ask**.\n\n"
+        "The system searches, checks whether it found enough, retries if not, "
+        "and answers with sources cited, or tells you if the answer is not in "
+        "the documents."
+    )
     st.divider()
+    st.subheader("Knowledge source")
+    source_mode = st.radio(
+        "What should it search?",
+        ["Built-in cybersecurity docs", "Upload my own document"],
+        help="Built-in: NIST, MITRE ATT&CK, and vulnerability notes. "
+             "Upload: ask questions about your own file (used only for this "
+             "session, never saved).",
+    )
+
+    uploaded = None
+    if source_mode == "Upload my own document":
+        uploaded = st.file_uploader(
+            "Upload a document (PDF, Word, or text)",
+            type=["pdf", "docx", "txt", "md"],
+            help="Max 5 MB. Your file is used only for your questions in this "
+                 "session and is not stored.",
+        )
+        st.caption("Try a published security PDF, a policy document, or any "
+                   "text-based file, then ask questions about it.")
+
+    st.divider()
+    with st.expander("Advanced engine controls"):
+        alpha = st.slider("Hybrid alpha (0=keyword, 1=semantic)", 0.0, 1.0, 0.5, 0.1,
+                          help="Blends keyword search with semantic search.")
+        max_attempts = st.slider("Max retrieval attempts", 1, 5, 3,
+                                 help="How many times it may rewrite and retry.")
+        corpus = st.selectbox("Built-in corpus", ["security", "secondary"],
+                              help="Which built-in document set to use.")
     if not os.getenv("GEMINI_API_KEY"):
-        st.error("GEMINI_API_KEY not set. Add it in Streamlit secrets or your shell.")
-    st.caption("Engine lives in core/. This page is only a UI shell.")
+        st.error("GEMINI_API_KEY not set. Add it in Streamlit secrets.")
 
 
 @st.cache_resource(show_spinner="Indexing corpus (one-time)...")
 def get_pipeline(corpus_name: str, hybrid_alpha: float, max_att: int):
-    """Cache the pipeline so we do not re-embed the corpus on every keystroke.
-    The cache key is the tuple of args, so changing corpus/alpha rebuilds."""
+    """Cache the built-in-corpus pipeline so we do not re-embed on every
+    keystroke. The cache key is the tuple of args, so changing corpus/alpha
+    rebuilds."""
     cfg = Config()
     cfg.corpus = corpus_name
     cfg.hybrid_alpha = hybrid_alpha
@@ -84,22 +114,98 @@ def get_pipeline(corpus_name: str, hybrid_alpha: float, max_att: int):
     return RAGPipeline(cfg)
 
 
-question = st.text_input("Your question",
-                         placeholder="e.g. What is Kerberoasting and how do I mitigate it?")
+@st.cache_resource(show_spinner="Reading and indexing your document...")
+def get_uploaded_pipeline(file_name: str, file_hash: str, _data: bytes,
+                          hybrid_alpha: float, max_att: int):
+    """Build a pipeline from an uploaded document, in memory only.
 
-if st.button("Ask", type="primary") and question:
+    The file is parsed to text, chunked, and indexed for this session. It is
+    never written to disk or added to the permanent corpus. We cache on
+    (name, hash) so re-asking about the same file does not re-index it, but a
+    different file rebuilds. The leading underscore on _data tells Streamlit
+    not to try to hash the raw bytes for the cache key (we pass our own hash).
+    """
+    from core.loader import load_uploaded
+    from core.documents import chunk_text
+
+    cfg = Config()
+    cfg.hybrid_alpha = hybrid_alpha
+    cfg.max_retrieval_attempts = max_att
+
+    doc = load_uploaded(file_name, _data)
+    chunks = chunk_text(doc.text, doc.name, cfg.chunk_size, cfg.chunk_overlap)
+    pipeline = RAGPipeline(cfg, chunks=chunks)
+    return pipeline, doc.note
+
+
+# ---- Decide which pipeline to use based on the source mode ----
+active_pipeline = None
+upload_note = ""
+ready = True
+
+if source_mode == "Upload my own document":
+    if uploaded is None:
+        st.info("Upload a document in the sidebar to ask questions about it, "
+                "or switch to the built-in cybersecurity docs.")
+        ready = False
+    else:
+        import hashlib
+        data = uploaded.getvalue()
+        fhash = hashlib.md5(data).hexdigest()
+        try:
+            active_pipeline, upload_note = get_uploaded_pipeline(
+                uploaded.name, fhash, data, alpha, max_attempts)
+            st.success(f"Indexed **{uploaded.name}**. Ask a question about it below.")
+            if upload_note:
+                st.caption(upload_note)
+        except ValueError as e:
+            st.error(str(e))
+            ready = False
+else:
+    active_pipeline = get_pipeline(corpus, alpha, max_attempts)
+
+
+placeholder = ("e.g. What is Kerberoasting and how do I mitigate it?"
+               if source_mode == "Built-in cybersecurity docs"
+               else "e.g. What are the main points of this document?")
+question = st.text_input("Your question", placeholder=placeholder)
+
+if st.button("Ask", type="primary") and question and ready and active_pipeline:
     if not os.getenv("GEMINI_API_KEY"):
         st.stop()
-    pipeline = get_pipeline(corpus, alpha, max_attempts)
-    with st.spinner("Retrieving, grading, answering..."):
-        result = pipeline.answer(question)
+    from core.llm import RateLimitError
+    try:
+        with st.spinner("Retrieving, grading, answering..."):
+            result = active_pipeline.answer(question)
+    except RateLimitError:
+        st.info("This tool is getting a lot of requests right now and hit a "
+                "short rate limit. Please wait about a minute and try again.")
+        st.stop()
+    except Exception:
+        # Any other hiccup (a temporary API issue, a network blip) is shown
+        # calmly rather than as a red crash. We keep it friendly and
+        # non-technical for visitors, and never expose internal error details.
+        st.info("Something went briefly wrong reaching the AI service, this is "
+                "usually temporary. Please try your question again in a moment. "
+                "If it keeps happening, the service may be busy.")
+        st.stop()
 
     # ---- The answer ----
     st.markdown("### Answer")
-    if result.low_confidence:
-        st.warning("Low confidence: the system could not fully verify it found "
-                   "enough context after all attempts. Treat the answer cautiously.")
-    st.write(result.answer.text)
+    _refusal = "don't have enough information" in result.answer.text.lower()
+    if _refusal:
+        # This is the system correctly declining to answer because the corpus
+        # does not cover the question. It is intended behavior (anti-
+        # hallucination), so we present it calmly, not as a warning or error.
+        st.info("This question does not appear to be covered by the current "
+                "documents, so the assistant is not answering it rather than "
+                "guessing. Try a question about the loaded material, or switch "
+                "the knowledge source in the sidebar.")
+    else:
+        if result.low_confidence:
+            st.caption("Note: the assistant had limited supporting context for "
+                       "this one, so consider it lightly.")
+        st.write(result.answer.text)
 
     # ---- Citations ----
     if result.answer.cited_sources:
