@@ -1,0 +1,28 @@
+MITRE ATT&CK Framework Reference Notes
+
+What ATT&CK Is
+MITRE ATT&CK is a globally accessible knowledge base of adversary tactics and techniques based on real-world observations. Unlike a compliance framework, ATT&CK describes how attackers actually behave once inside or attacking a network. Security teams use it to map detections, plan red-team exercises, and communicate about threats using a shared vocabulary. ATT&CK is organized into Tactics (the adversary's goal) and Techniques (how they achieve it).
+
+Tactics
+Tactics represent the "why" of an attack step, the adversary's tactical objective. The Enterprise matrix includes tactics such as Reconnaissance, Resource Development, Initial Access, Execution, Persistence, Privilege Escalation, Defense Evasion, Credential Access, Discovery, Lateral Movement, Collection, Command and Control, Exfiltration, and Impact. Each tactic contains many techniques.
+
+Initial Access
+Initial Access is the tactic where adversaries try to get into your network. Techniques include phishing, exploiting public-facing applications, valid accounts, and supply chain compromise. Phishing is among the most common initial access techniques because it targets people rather than technology.
+
+Credential Access
+Credential Access is the tactic of stealing account names and passwords. Techniques include brute force, credential dumping (for example dumping the LSASS process memory on Windows), and Kerberoasting. Kerberoasting is a technique that targets the Kerberos authentication protocol: an attacker requests service tickets for accounts running services, then cracks those tickets offline to recover the service account password. The mitigation is to use long, complex service account passwords and managed service accounts, and to monitor for unusual ticket requests.
+
+Lateral Movement
+Lateral Movement is the tactic adversaries use to move through an environment after gaining a foothold. Techniques include pass-the-hash, remote services like RDP, and use of valid accounts. Network segmentation and least privilege limit how far an attacker can move laterally.
+
+Privilege Escalation
+Privilege Escalation is the tactic of gaining higher-level permissions. Adversaries often enter with limited privileges and seek administrator or SYSTEM-level access. Techniques include exploiting software vulnerabilities, abusing misconfigured permissions, and token manipulation. Applying patches promptly and following least privilege reduce escalation opportunities.
+
+Defense Evasion
+Defense Evasion is the tactic of avoiding detection. Techniques include disabling security tools, obfuscating files, and abusing legitimate system tools, an approach often called living off the land, where attackers use built-in utilities like PowerShell so their activity blends in with normal administration.
+
+Command and Control
+Command and Control (C2) is the tactic where adversaries communicate with compromised systems to control them. Techniques include using common web protocols and encrypted channels to blend with normal traffic. Detecting C2 often relies on identifying anomalous outbound connections rather than known-bad signatures.
+
+How Defenders Use ATT&CK
+Defenders map their detection coverage to the ATT&CK matrix to find gaps. If no detection exists for a common Credential Access technique, that is a prioritized gap. This mapping turns an abstract sense of security posture into a concrete, technique-by-technique coverage map that leadership can understand and fund.

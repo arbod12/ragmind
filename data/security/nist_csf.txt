@@ -1,0 +1,31 @@
+NIST Cybersecurity Framework (CSF) 2.0 Reference Notes
+
+Overview
+The NIST Cybersecurity Framework is a voluntary framework of standards, guidelines, and best practices to manage cybersecurity risk. Version 2.0, released in 2024, expanded the framework beyond critical infrastructure to organizations of all sizes and sectors. The framework is organized around a set of high-level Functions that together describe a full lifecycle of cybersecurity risk management.
+
+The Six Core Functions
+CSF 2.0 defines six Functions. The first, Govern, was added in version 2.0 and is the major structural change from version 1.1.
+
+Govern (GV): Establishes and monitors the organization's cybersecurity risk management strategy, expectations, and policy. Govern covers organizational context, risk management strategy, roles and responsibilities, policy, and oversight. It is the function that ties cybersecurity to overall enterprise risk and leadership accountability.
+
+Identify (ID): Develops an organizational understanding to manage cybersecurity risk to systems, people, assets, data, and capabilities. Identify includes asset management, business environment understanding, and risk assessment. You cannot protect what you do not know you have, so asset inventory is foundational here.
+
+Protect (PR): Develops and implements appropriate safeguards to ensure delivery of services and to limit or contain the impact of a potential cybersecurity event. Protect includes identity management and access control, awareness and training, data security, and protective technology.
+
+Detect (DE): Develops and implements activities to identify the occurrence of a cybersecurity event in a timely manner. Detect includes continuous monitoring and detection processes. The goal is to discover incidents quickly rather than learning about them weeks later.
+
+Respond (RS): Develops and implements activities to take action regarding a detected cybersecurity incident. Respond includes response planning, communications, analysis, mitigation, and improvements. A tested incident response plan dramatically reduces the cost and duration of a breach.
+
+Recover (RC): Develops and implements activities to maintain plans for resilience and to restore capabilities or services impaired by a cybersecurity incident. Recover includes recovery planning and improvements, and supports timely return to normal operations.
+
+Implementation Tiers
+The framework defines four Tiers describing the rigor of an organization's cybersecurity risk governance and management practices. Tier 1 is Partial, Tier 2 is Risk Informed, Tier 3 is Repeatable, and Tier 4 is Adaptive. Tiers are not maturity levels to be climbed at all costs; an organization should select a target Tier appropriate to its risk and resources.
+
+Profiles
+A Profile represents the cybersecurity outcomes an organization has selected from the Core, based on its needs. A Current Profile describes outcomes being achieved today; a Target Profile describes desired outcomes. The gap between Current and Target profiles drives the prioritized action plan.
+
+Multi-Factor Authentication
+Within the Protect function, identity management and access control strongly recommend multi-factor authentication (MFA). MFA requires a user to present two or more distinct types of evidence to authenticate: something you know (a password), something you have (a hardware token or phone), or something you are (a biometric). MFA is one of the single most effective controls against credential theft because a stolen password alone is no longer sufficient to gain access.
+
+Least Privilege
+The principle of least privilege states that a user, process, or system should be granted only the minimum access rights necessary to perform its function, and no more. Limiting privileges reduces the blast radius of a compromised account: if an attacker takes over a low-privilege account, the damage they can do is constrained.

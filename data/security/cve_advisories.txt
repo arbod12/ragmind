@@ -1,0 +1,25 @@
+Selected Vulnerability Advisories Reference Notes
+
+Purpose of This Document
+This file summarizes a few well-known, widely-documented software vulnerabilities and the concepts behind them. It is for educational retrieval testing. Each entry follows a consistent structure: identifier, affected software, the nature of the flaw, impact, and mitigation.
+
+CVE-2021-44228 (Log4Shell)
+Affected software: Apache Log4j 2, a widely used Java logging library, versions 2.0-beta9 through 2.14.1.
+Nature of the flaw: A remote code execution vulnerability in the JNDI lookup feature. When the library logged a specially crafted string containing a JNDI lookup, it would reach out to an attacker-controlled server and load and execute remote code.
+Impact: Critical. Because Log4j is embedded in countless applications, a single logged string from an untrusted source, such as a web request header, could lead to full remote code execution. It was assigned the maximum severity score.
+Mitigation: Upgrade Log4j to a fixed version (2.17.1 or later for full remediation). As interim measures, organizations removed the vulnerable JndiLookup class or disabled message lookups. The broader lesson is the danger of software supply chain risk: a flaw in one dependency cascades into every application that uses it.
+
+CVE-2014-0160 (Heartbleed)
+Affected software: OpenSSL versions 1.0.1 through 1.0.1f, in the implementation of the TLS heartbeat extension.
+Nature of the flaw: A buffer over-read. The server failed to validate a length field in a heartbeat request, so an attacker could request more data than they sent and the server would return adjacent memory contents.
+Impact: High. Attackers could read up to 64 kilobytes of server memory per request, potentially exposing private keys, session tokens, and passwords, without leaving a trace in logs.
+Mitigation: Upgrade to a patched OpenSSL version, then revoke and reissue TLS certificates and reset potentially exposed credentials, because the private keys themselves may have been leaked. Heartbleed is a classic example of why patching alone is insufficient when secrets may already be compromised.
+
+CVE-2017-0144 (EternalBlue)
+Affected software: Microsoft Windows implementation of the SMBv1 protocol.
+Nature of the flaw: A remote code execution vulnerability in how SMBv1 handled specially crafted packets.
+Impact: Critical. EternalBlue was used by the WannaCry ransomware worm in 2017 to spread automatically across networks without user interaction, infecting hundreds of thousands of machines worldwide.
+Mitigation: Apply the Microsoft security update that patched SMBv1, disable the legacy SMBv1 protocol entirely where possible, and block the relevant ports at network boundaries. EternalBlue demonstrates how an unpatched network service can enable self-propagating malware.
+
+General Vulnerability Management Principles
+A vulnerability is a weakness that can be exploited; an exploit is the method used to take advantage of it; a patch is the vendor fix. Effective vulnerability management means maintaining an asset inventory, monitoring advisory feeds, prioritizing patches by severity and exposure, and verifying that patches were actually applied. Severity is commonly scored using the Common Vulnerability Scoring System (CVSS), which produces a number from 0 to 10, where 9.0 and above is considered critical.

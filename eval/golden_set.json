@@ -1,0 +1,68 @@
+[
+  {
+    "question": "What new function was added in NIST CSF 2.0?",
+    "category": "answerable",
+    "expected_source": "nist_csf.txt",
+    "reference_answer": "The Govern function was added in CSF 2.0. It establishes and monitors the organization's cybersecurity risk management strategy, expectations, and policy, and was the major structural change from version 1.1."
+  },
+  {
+    "question": "What are the six core functions of the NIST Cybersecurity Framework?",
+    "category": "answerable",
+    "expected_source": "nist_csf.txt",
+    "reference_answer": "Govern, Identify, Protect, Detect, Respond, and Recover."
+  },
+  {
+    "question": "Why is multi-factor authentication effective against credential theft?",
+    "category": "answerable",
+    "expected_source": "nist_csf.txt",
+    "reference_answer": "Because MFA requires two or more distinct types of evidence to authenticate, so a stolen password alone is no longer sufficient to gain access."
+  },
+  {
+    "question": "What is Kerberoasting and how do you mitigate it?",
+    "category": "answerable",
+    "expected_source": "mitre_attack.txt",
+    "reference_answer": "Kerberoasting targets the Kerberos protocol by requesting service tickets for service accounts and cracking them offline to recover the password. Mitigations include long complex service account passwords, managed service accounts, and monitoring for unusual ticket requests."
+  },
+  {
+    "question": "What does the Lateral Movement tactic mean in MITRE ATT&CK?",
+    "category": "answerable",
+    "expected_source": "mitre_attack.txt",
+    "reference_answer": "Lateral Movement is the tactic adversaries use to move through an environment after gaining a foothold, using techniques like pass-the-hash, RDP, and valid accounts. Segmentation and least privilege limit it."
+  },
+  {
+    "question": "What was the Log4Shell vulnerability and how was it fixed?",
+    "category": "answerable",
+    "expected_source": "cve_advisories.txt",
+    "reference_answer": "Log4Shell (CVE-2021-44228) was a critical remote code execution flaw in the JNDI lookup feature of Apache Log4j 2. It was fixed by upgrading to 2.17.1 or later, with interim mitigations of removing the JndiLookup class or disabling message lookups."
+  },
+  {
+    "question": "Which vulnerability did the WannaCry ransomware use to spread?",
+    "category": "answerable",
+    "expected_source": "cve_advisories.txt",
+    "reference_answer": "WannaCry used EternalBlue (CVE-2017-0144), a remote code execution vulnerability in the Windows SMBv1 protocol."
+  },
+  {
+    "question": "What does the principle of least privilege state?",
+    "category": "answerable",
+    "expected_source": "nist_csf.txt",
+    "reference_answer": "That a user, process, or system should be granted only the minimum access rights necessary to perform its function, which reduces the blast radius of a compromised account."
+  },
+  {
+    "question": "What is the capital of France?",
+    "category": "unanswerable",
+    "expected_source": null,
+    "reference_answer": "This is not covered by the corpus; the system should abstain."
+  },
+  {
+    "question": "How do I bake a chocolate chip cookie?",
+    "category": "unanswerable",
+    "expected_source": null,
+    "reference_answer": "This is not covered by the corpus; the system should abstain."
+  },
+  {
+    "question": "What was Apple's revenue in the third quarter of 2025?",
+    "category": "unanswerable",
+    "expected_source": null,
+    "reference_answer": "This is not covered by the corpus; the system should abstain."
+  }
+]
