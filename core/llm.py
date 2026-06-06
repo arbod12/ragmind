@@ -32,6 +32,15 @@ class LLMClient(ABC):
         ...
 
 
+class RateLimitError(Exception):
+    """Raised when the API returns 429 (quota/rate limit exceeded). We use a
+    distinct exception type so callers can catch THIS specifically and show a
+    calm 'try again in a moment' message, instead of treating it like a real
+    failure. Distinguishing 'you are going too fast' from 'something broke' is
+    good error-handling hygiene."""
+    pass
+
+
 class GeminiClient(LLMClient):
     """Calls Google's Generative Language API with no SDK, just stdlib HTTP.
 
@@ -75,6 +84,11 @@ class GeminiClient(LLMClient):
                 body = json.loads(resp.read().decode("utf-8"))
         except urllib.error.HTTPError as e:
             detail = e.read().decode("utf-8", errors="ignore")[:300]
+            if e.code == 429:
+                raise RateLimitError(
+                    "The free Gemini tier rate limit was hit. Wait about a "
+                    "minute and try again."
+                )
             raise RuntimeError(f"Gemini API error {e.code}: {detail}")
 
         # Defensive parsing: the API can return a candidate with no text if it
