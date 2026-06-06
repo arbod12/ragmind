@@ -103,7 +103,18 @@ def run_eval(config: Config, golden_path: str = "eval/golden_set.json",
         expected = case.get("expected_source")
         reference = case.get("reference_answer", "")
 
-        res = pipeline.answer(q)
+        # On a free-tier rate limit, wait and retry rather than losing the run.
+        from core.llm import RateLimitError
+        for _attempt in range(3):
+            try:
+                res = pipeline.answer(q)
+                break
+            except RateLimitError:
+                print(f"  rate limited on '{q[:40]}...', waiting 30s...")
+                time.sleep(30)
+        else:
+            print(f"  skipping '{q[:40]}...' after repeated rate limits")
+            continue
         ans = res.answer
 
         # Retrieval hit: did the expected source appear anywhere we retrieved?
